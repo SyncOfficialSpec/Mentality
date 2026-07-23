@@ -72,9 +72,9 @@ local Library do
         FadeSpeed = 0.2,
 
         Folders = {
-            Directory = "lyapossss",
-            Configs = "lyapossss/Configs",
-            Assets = "lyapossss/Assets",
+            Directory = "Mentality",
+            Configs = "Mentality/Configs",
+            Assets = "Mentality/Assets",
         },
 
         -- Ignore below
@@ -754,11 +754,28 @@ local Library do
     Library.GetImage = function(self, Image)
         local ImageData = self.Images[Image]
 
-        if not ImageData then 
+        if not ImageData then
             return
         end
 
         return getcustomasset(self.Folders.Assets .. "/" .. ImageData[1])
+    end
+
+    -- Accepts a bare numeric asset id, a full rbxassetid://, an rbxasset:// (getcustomasset),
+    -- or an http(s) image; anything non-numeric is returned untouched so custom images work.
+    Library.ResolveImage = function(self, Image)
+        if type(Image) ~= "string" then
+            if typeof(Image) == "EnumItem" then
+                return Image
+            end
+            return ""
+        end
+
+        if Image:match("^%d+$") then
+            return "rbxassetid://" .. Image
+        end
+
+        return Image
     end
 
     Library.Round = function(self, Number, Float)
@@ -2187,7 +2204,7 @@ local Library do
                     ImageColor3 = FromRGB(255, 255, 255),
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0),
-                    Image = "rbxassetid://"..Data.Icon,
+                    Image = Library:ResolveImage(Data.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(1, 0, 0, 0),
                     Size = UDim2New(0, 16, 0, 16),
@@ -2409,7 +2426,7 @@ local Library do
                         Parent = Items["FloatingButton"].Instance,
                         BorderColor3 = FromRGB(0, 0, 0),
                         Name = "\0",
-                        Image = "rbxassetid://" .. Window.Logo,
+                        Image = Library:ResolveImage(Window.Logo),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2New(0.5, 0.5),
                         Position = UDim2New(0.5, 0, 0.5, 0),
@@ -2486,7 +2503,7 @@ local Library do
                     ScaleType = Enum.ScaleType.Fit,
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 35, 0, 35),
-                    Image = "rbxassetid://"..Window.Logo,
+                    Image = Library:ResolveImage(Window.Logo),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 12, 0, 12),
                     ZIndex = 2,
@@ -3741,7 +3758,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 18, 0, 18),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Page.Icon,
+                    Image = Library:ResolveImage(Page.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 16, 0.5, 0),
                     ZIndex = 2,
@@ -4502,7 +4519,7 @@ local Library do
                     Parent = Section.Page.ColumnsData[Section.Side].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    BackgroundTransparency = 0.6499999761581421,
+                    BackgroundTransparency = 1,
                     ClipsDescendants = true,
                     BorderSizePixel = 0,
                     Size = UDim2New(1, 0, 0, 45),
@@ -4541,7 +4558,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 21, 0, 20),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Section.Icon,
+                    Image = Library:ResolveImage(Section.Icon),
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 15, 0.5, 0),
                     ZIndex = 2,
@@ -4611,19 +4628,19 @@ local Library do
                     AnchorPoint = Vector2New(1, 0.5),
                     Selectable = false,
                     Position = UDim2New(1, -15, 0.5, 0),
-                    Size = UDim2New(0, 26, 0, 16),
+                    Size = UDim2New(0, 36, 0, 18),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
-                
+
                 Items["Circle"] = Instances:Create("Frame", {
                     Parent = Items["Toggle"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0.5),
                     Position = UDim2New(1, -4, 0.5, 0),
-                    Size = UDim2New(0, 8, 0, 8),
+                    Size = UDim2New(0, 12, 0, 12),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -4774,7 +4791,7 @@ local Library do
                     Parent = Items["Section"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    BackgroundTransparency = 0.6499999761581421,
+                    BackgroundTransparency = 1,
                     Position = UDim2New(0, 1, 0, 55),
                     Size = UDim2New(1, -2, 1, -56),
                     ZIndex = 2,
@@ -5480,7 +5497,7 @@ local Library do
                         BorderColor3 = FromRGB(0, 0, 0),
                         Size = UDim2New(0, 18, 0, 18),
                         AnchorPoint = Vector2New(1, 0.5),
-                        Image = "rbxassetid://"..Button.Icon,
+                        Image = Library:ResolveImage(Button.Icon),
                         BackgroundTransparency = 1,
                         Position = UDim2New(0, -8, 0.5, 0),
                         ZIndex = 2,

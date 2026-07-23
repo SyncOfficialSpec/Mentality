@@ -1,114 +1,154 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/SyncOfficialSpec/Mentality/refs/heads/main/source/library.lua"))()
-local CheatName = "MyProject"
+
+-- Icon bootstrap: pull the lucide PNGs shipped in the repo, cache them to disk and
+-- resolve to getcustomasset paths so every tab / section gets its own glyph.
+local ASSET_BASE = "https://raw.githubusercontent.com/SyncOfficialSpec/Mentality/refs/heads/main/assets/icons/"
 
 Library.Folders = {
-    Directory = CheatName,
-    Configs = CheatName .. "/Configs",
-    Assets = CheatName .. "/Assets",
+    Directory = "Mentality",
+    Configs = "Mentality/Configs",
+    Assets = "Mentality/Assets",
 }
 
-local Accent = Color3.fromRGB(255, 80, 80)
-local Gradient = Color3.fromRGB(120, 20, 20)
+for _, Folder in pairs(Library.Folders) do
+    if not isfolder(Folder) then
+        makefolder(Folder)
+    end
+end
 
-Library.Theme.Accent = Accent
-Library.Theme.AccentGradient = Gradient
-Library:ChangeTheme("Accent", Accent)
-Library:ChangeTheme("AccentGradient", Gradient)
+local IconNames = {
+    "car-front", "eye", "languages", "users", "radar", "globe", "wand-sparkles", "bomb",
+    "crosshair", "target", "settings", "brush", "sparkles", "gem", "palette", "pipette",
+    "sliders-horizontal", "gauge", "zap", "shield", "flame", "cpu", "swords", "map",
+}
+
+local Icons = {}
+for _, Name in ipairs(IconNames) do
+    local Path = Library.Folders.Assets .. "/" .. Name .. ".png"
+    local Ok = pcall(function()
+        if not isfile(Path) then
+            writefile(Path, game:HttpGet(ASSET_BASE .. Name .. ".png"))
+        end
+    end)
+    Icons[Name] = (Ok and isfile(Path)) and getcustomasset(Path) or ""
+end
+
+-- Theme: warm accent head fading into deep red (matches the reference build).
+Library.Theme.Accent = Color3.fromRGB(230, 131, 90)
+Library.Theme.AccentGradient = Color3.fromRGB(200, 50, 50)
+
 local Window = Library:Window({
-    Name = "Like Neverlose UI",
-    SubName = "Example btw",
-    Logo = "120959262762131"
+    Name = "MENTALITY v2",
+    SubName = "Fine-tuning for sure wins",
+    Logo = Icons["gem"],
+    MenuKeybind = Enum.KeyCode.RightShift,
 })
 
-local KeybindList = Library:KeybindList("Keybinds")
 Library:Watermark({
-    "Like Neverlose UI",
-    "by ImInsane",
-    120959262762131
+    "MENTALITY v2",
+    "Fine-tuning for sure wins",
+    Icons["gem"],
 })
 
-task.spawn(function()
-    while true do
-        local FPS = math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
-        
-        Library:Watermark({
-            "Like Neverlose UI",
-            "by ImInsane",
-            120959262762131,
-            "FPS: " .. FPS
-        })
-        task.wait(0.5)
-    end
-end)
+-- Categories only surface when the tab strip is dragged to a side (sidebar mode).
+Window:Category("Environment & Transport")
+local CarPage = Window:Page({ Name = "Car", Icon = Icons["car-front"] })
+local ESPPage = Window:Page({ Name = "ESP", Icon = Icons["eye"] })
+local LangPage = Window:Page({ Name = "Lang", Icon = Icons["languages"] })
 
-Window:Category("Main")
+Window:Category("Players & Vision")
+local PlayersPage = Window:Page({ Name = "Players", Icon = Icons["users"] })
+local RadarPage = Window:Page({ Name = "Radar", Icon = Icons["radar"] })
+local WorldPage = Window:Page({ Name = "World", Icon = Icons["globe"] })
 
-local LegitPage = Window:Page({Name = "Legit", Icon = "138827881557940"})
-local MainSection = LegitPage:Section({Name = "Main Features", Side = 1})
+Window:Category("Utilities & Settings")
+local MiscPage = Window:Page({ Name = "Misc", Icon = Icons["wand-sparkles"] })
+local ExploitsPage = Window:Page({ Name = "Exploits", Icon = Icons["bomb"] })
 
-MainSection:Toggle({
-    Name = "Enabled",
-    Flag = "LegitEnabled",
-    Default = true,
-    Callback = function(Value)
-        print("Legit Enabled:", Value)
-    end
+-- Car : left column ---------------------------------------------------------
+local Aimbot = CarPage:Section({
+    Name = "Aimbot",
+    Description = "This description for child",
+    Icon = Icons["crosshair"],
+    Side = 1,
+    EnableToggle = true,
 })
 
-MainSection:Slider({
-    Name = "Speed Hack",
-    Flag = "SpeedSlider",
-    Min = 1,
-    Max = 100,
-    Default = 16,
-    Suffix = " studs",
-    Callback = function(Value)
-        print("Speed set to:", Value)
-    end
+local TargetPrediction = Aimbot:Toggle({ Name = "Target Prediction", Default = true })
+local TargetPredictionSettings = TargetPrediction:Settings()
+TargetPredictionSettings:Slider({ Name = "Prediction Amount", Min = 0, Max = 100, Default = 50, Suffix = "%" })
+
+Aimbot:Slider({ Name = "Radar Range", Min = 0, Max = 500, Default = 208 })
+Aimbot:Dropdown({ Name = "Radar Mode", Items = { "Off", "2D", "3D" }, Default = "Off" })
+Aimbot:Toggle({ Name = "Footprints", Default = true })
+Aimbot:Dropdown({ Name = "Footprint Type", Items = { "Allies", "Enemies", "All" }, Default = "Allies" })
+Aimbot:Label("Tracer Color"):Colorpicker({ Name = "Tracer Color", Default = Color3.fromRGB(0, 127, 255) })
+
+local Menu = CarPage:Section({
+    Name = "Menu settings",
+    Description = "This description for child",
+    Icon = Icons["settings"],
+    Side = 1,
+    EnableToggle = true,
 })
 
-MainSection:Dropdown({
-    Name = "Hitbox Type",
-    Flag = "HitboxType",
-    Default = {"Head"},
-    Items = {"Head", "Torso", "Arms", "Legs"},
-    Multi = true,
-    Callback = function(Value)
-        print("Selected Hitboxes:", table.concat(Value, ", "))
-    end
+Menu:Button({ Name = "Button with icon", Icon = Icons["brush"] })
+Menu:Button({ Name = "Change theme" })
+Menu:Button({ Name = "Change language" })
+Menu:Slider({ Name = "Particle count", Min = 0, Max = 100, Default = 35 })
+Menu:Label("First gradient color"):Colorpicker({ Name = "First Gradient", Default = Color3.fromRGB(230, 131, 90) })
+Menu:Label("Second gradient color"):Colorpicker({ Name = "Second Gradient", Default = Color3.fromRGB(200, 50, 50) })
+
+-- Car : right column --------------------------------------------------------
+local Wallhack = CarPage:Section({
+    Name = "Wallhack",
+    Description = "This description for child",
+    Icon = Icons["target"],
+    Side = 2,
+    EnableToggle = true,
 })
 
-MainSection:Label("ESP Color"):Colorpicker({
-    Name = "Color",
-    Flag = "EspColor",
-    Default = Color3.fromRGB(255, 255, 255),
-    Callback = function(Value)
-        print("Color changed")
-    end
-})
+Wallhack:Dropdown({ Name = "Select gun", Items = { "AK-47", "M4A1", "AWP", "Glock", "Deagle" }, Default = "AK-47" })
+Wallhack:Toggle({ Name = "Enable Wallhack", Default = false })
+Wallhack:Toggle({ Name = "Show Enemies", Default = true })
+Wallhack:Toggle({ Name = "Show Health", Default = true })
+Wallhack:Toggle({ Name = "Show Armor", Default = false })
+Wallhack:Toggle({ Name = "Show Weapons", Default = false })
 
-local MiscSection = LegitPage:Section({Name = "Misc", Side = 2})
-MiscSection:Button({
-    Name = "Test Notification",
-    Callback = function()
-        Library:Notification({
-            Title = "System",
-            Description = "This is a test notification!",
-            Duration = 5,
-            Icon = "73789337996373"
-        })
-    end
-})
+local ShowVehicles = Wallhack:Toggle({ Name = "Show Vehicles", Default = true })
+local ShowVehiclesSettings = ShowVehicles:Settings()
+ShowVehiclesSettings:Slider({ Name = "Vehicle Range", Min = 0, Max = 500, Default = 200 })
 
-MiscSection:Keybind({
-    Name = "Test keybind",
-    Flag = "testkeybind",
-    Default = Enum.KeyCode.Delete,
-    Callback = function(Value)
-        print("Keybind pressed")
-    end
-})
+Wallhack:Toggle({ Name = "Show Grenades", Default = false })
+Wallhack:Toggle({ Name = "No Obstacles", Default = false })
+Wallhack:Label("Enemy Color"):Colorpicker({ Name = "Enemy Color", Default = Color3.fromRGB(230, 131, 90) })
+Wallhack:Label("Item Color"):Colorpicker({ Name = "Item Color", Default = Color3.fromRGB(230, 131, 90) })
+Wallhack:Slider({ Name = "Max Distance", Min = 0, Max = 500, Default = 198 })
+Wallhack:Toggle({ Name = "Show Teammates", Default = true })
+Wallhack:Toggle({ Name = "Show Names", Default = true })
+Wallhack:Toggle({ Name = "Show Dead Boxes", Default = false })
 
-Window:Category("Settings")
-local SettingsPage = Library:CreateSettingsPage(Window, KeybindList)
+-- Token content on the other tabs so switching pages shows something. --------
+local EspMain = ESPPage:Section({ Name = "ESP", Description = "This description for child", Icon = Icons["eye"], Side = 1, EnableToggle = true })
+EspMain:Toggle({ Name = "Enabled", Default = true })
+EspMain:Slider({ Name = "Render Distance", Min = 0, Max = 1000, Default = 400 })
+EspMain:Label("Box Color"):Colorpicker({ Name = "Box Color", Default = Color3.fromRGB(230, 131, 90) })
+
+local PlayersMain = PlayersPage:Section({ Name = "Players", Description = "This description for child", Icon = Icons["users"], Side = 1, EnableToggle = true })
+PlayersMain:Toggle({ Name = "Show List", Default = true })
+PlayersMain:Dropdown({ Name = "Sort By", Items = { "Distance", "Name", "Health" }, Default = "Distance" })
+
+local RadarMain = RadarPage:Section({ Name = "Radar", Description = "This description for child", Icon = Icons["radar"], Side = 1, EnableToggle = true })
+RadarMain:Toggle({ Name = "Enabled", Default = true })
+RadarMain:Slider({ Name = "Zoom", Min = 1, Max = 10, Default = 4 })
+
+local MiscMain = MiscPage:Section({ Name = "Misc", Description = "This description for child", Icon = Icons["wand-sparkles"], Side = 1, EnableToggle = true })
+MiscMain:Toggle({ Name = "Anti AFK", Default = true })
+MiscMain:Button({ Name = "Rejoin Server" })
+MiscMain:Keybind({ Name = "Panic Key", Default = Enum.KeyCode.Delete })
+
+local ExploitsMain = ExploitsPage:Section({ Name = "Exploits", Description = "This description for child", Icon = Icons["bomb"], Side = 1, EnableToggle = true })
+ExploitsMain:Toggle({ Name = "Fly", Default = false })
+ExploitsMain:Slider({ Name = "Fly Speed", Min = 1, Max = 100, Default = 50 })
+
 Window:Init()
