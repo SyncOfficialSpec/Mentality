@@ -1,19 +1,17 @@
-# 💎 "Like Neverlose" UI Library for Roblox
+# 💎 MENTALITY UI Library for Roblox
 
-A modern, highly customizable, and optimized UI Library for Roblox scripts. Featuring a clean aesthetic inspired by Neverlose V2, smooth animations, a robust configuration system, and advanced features like DPI scaling and a draggable event logger.
+A modern, highly customizable, and optimized UI Library for Roblox scripts. Warm-accent dark theme, a draggable tab strip that snaps to any edge, smooth tweened animations, a robust config system, and DPI scaling.
 
 ![Lua](https://img.shields.io/badge/Language-Lua-blue) ![Platform](https://img.shields.io/badge/Platform-Roblox-red) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## ✨ Features
 
+*   **Draggable tab strip:** Grab the tab bar and drop it on any edge — bottom, top, left, or right. Sides turn into a categorised sidebar.
 *   **Modern Design:** Clean dark theme with customizable accents and gradients.
 *   **Smooth Animations:** All interactions are tweened for a premium feel.
 *   **DPI Scaling:** Built-in "Menu Scale" support (0.5x to 1.5x) for 4K monitors or small screens.
-*   **Advanced Logger:**
-    *   Draggable log container with "Smart Snapping" to the center of the screen.
-    *   Auto-sizing logs based on text length.
-    *   Stacking animations.
-*   **Nested Elements:** Support for placing Sliders, Dropdowns, and Keybinds *inside* Toggles.
+*   **Custom Icons:** Pass a numeric asset id, a full `rbxassetid://`, a `getcustomasset` path, or an http image — anything non-numeric is used as-is.
+*   **Nested Elements:** Support for placing Sliders, Dropdowns, and Keybinds *inside* Toggles via a gear popout.
 *   **Config System:** Built-in Save/Load system using `writefile`/`readfile`.
 *   **Element Features:**
     *   Multi-select Dropdowns with search.
