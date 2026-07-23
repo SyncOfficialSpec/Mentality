@@ -2455,14 +2455,20 @@ local Library do
                 Items["PagePlaceholder"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
-                    Visible = true,
+                    Visible = false,
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0, 0),
                     BackgroundTransparency = 1,
                     Size = UDim2New(0, 0, 0, 0),
-                    ZIndex = 2,
+                    ZIndex = 12,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
+                })
+
+                Instances:Create("UICorner", {
+                    Parent = Items["PagePlaceholder"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 6)
                 })
                 
                 Items["TabLayout"] = Instances:Create("UIListLayout", {
@@ -3399,19 +3405,14 @@ local Library do
                 Window:LayoutContent()
             end
 
-            function Window:GetClosestEdge(MousePosition)
-                local Frame = Items["MainFrame"].Instance
-                local Pos = Frame.AbsolutePosition
-                local Size = Frame.AbsoluteSize
-                local Relative = MousePosition - Pos
+            -- Nearest edge for a point already expressed in MainFrame-local pixels.
+            function Window:GetClosestEdge(X, Y)
+                local Size = Items["MainFrame"].Instance.AbsoluteSize
 
-                local DistLeft = Relative.X
-                local DistRight = Size.X - Relative.X
-                local DistTop = Relative.Y
-                local DistBottom = Size.Y - Relative.Y
+                local DistLeft, DistRight = X, Size.X - X
+                local DistTop, DistBottom = Y, Size.Y - Y
 
-                local Closest = "Bottom"
-                local Best = DistBottom
+                local Closest, Best = "Bottom", DistBottom
 
                 if DistTop < Best then Best = DistTop Closest = "Top" end
                 if DistLeft < Best then Best = DistLeft Closest = "Left" end
@@ -3420,65 +3421,85 @@ local Library do
                 return Closest
             end
 
-            do
-                local Dragging = false
-                local Moved = false
-                local StartInput
+            -- Tab strip drag. Armed from the strip background AND from every tab button,
+            -- because the buttons cover the strip and sink the press themselves. Everything
+            -- is tracked as a delta from the press so the GUI inset never has to be figured in.
+            local TabDrag = { Active = false, Moved = false }
 
-                Items["LeftTabs"]:Connect("InputBegan", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-                        Dragging = true
-                        Moved = false
-                        StartInput = Input.Position
-                    end
-                end)
+            function Window:BeginTabDrag(Input)
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+                    return
+                end
 
-                Library:Connect(UserInputService.InputChanged, function(Input)
-                    if not Dragging then return end
-                    if Input.UserInputType ~= Enum.UserInputType.MouseMovement and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+                local Strip = Items["LeftTabs"].Instance
+                local Main = Items["MainFrame"].Instance
 
-                    local Delta = (Input.Position - StartInput).Magnitude
-                    if Delta > 6 and not Moved then
-                        Moved = true
-                        Items["PagePlaceholder"].Instance.Visible = true
-                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 0.75})
-                    end
+                TabDrag.Active = true
+                TabDrag.Moved = false
+                TabDrag.Start = Input.Position
+                TabDrag.Origin = Strip.AbsolutePosition - Main.AbsolutePosition
+                TabDrag.Size = Strip.AbsoluteSize
+                TabDrag.Edge = Window.CurrentAlignment
 
-                    if Moved then
-                        local Edge = Window:GetClosestEdge(Vector2New(Input.Position.X, Input.Position.Y))
-                        local Frame = Items["PagePlaceholder"].Instance
-                        Frame.BackgroundColor3 = Library.Theme.Accent
-
-                        if Edge == "Bottom" then
-                            Frame.AnchorPoint = Vector2New(0, 1) Frame.Position = UDim2New(0, 0, 1, 0) Frame.Size = UDim2New(1, 0, 0, TabStripHeight)
-                        elseif Edge == "Top" then
-                            Frame.AnchorPoint = Vector2New(0, 0) Frame.Position = UDim2New(0, 0, 0, 0) Frame.Size = UDim2New(1, 0, 0, TabStripHeight)
-                        elseif Edge == "Left" then
-                            Frame.AnchorPoint = Vector2New(0, 0) Frame.Position = UDim2New(0, 0, 0, 0) Frame.Size = UDim2New(0, SidebarWidth, 1, 0)
-                        elseif Edge == "Right" then
-                            Frame.AnchorPoint = Vector2New(1, 0) Frame.Position = UDim2New(1, 0, 0, 0) Frame.Size = UDim2New(0, SidebarWidth, 1, 0)
-                        end
-                    end
-                end)
-
-                Library:Connect(UserInputService.InputEnded, function(Input)
-                    if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
-                    if not Dragging then return end
-                    Dragging = false
-
-                    if Moved then
-                        local Edge = Window:GetClosestEdge(Vector2New(Input.Position.X, Input.Position.Y))
-                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 1})
-                        task.spawn(function()
-                            task.wait(Library.Tween.Time)
-                            Items["PagePlaceholder"].Instance.Visible = false
-                        end)
-                        Window:LayoutTabs(Edge)
-                    end
-
-                    Moved = false
-                end)
+                Window.TabDidDrag = false
             end
+
+            Items["LeftTabs"]:Connect("InputBegan", function(Input)
+                Window:BeginTabDrag(Input)
+            end)
+
+            Library:Connect(UserInputService.InputChanged, function(Input)
+                if not TabDrag.Active then return end
+                if Input.UserInputType ~= Enum.UserInputType.MouseMovement and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+
+                local Delta = Input.Position - TabDrag.Start
+                local Ghost = Items["PagePlaceholder"].Instance
+
+                if not TabDrag.Moved and Vector2New(Delta.X, Delta.Y).Magnitude > 6 then
+                    TabDrag.Moved = true
+                    Window.TabDidDrag = true
+
+                    Ghost.BackgroundColor3 = FromRGB(255, 255, 255)
+                    Ghost.AnchorPoint = Vector2New(0, 0)
+                    Ghost.Visible = true
+                    Items["PagePlaceholder"]:Tween(nil, { BackgroundTransparency = 0.7 })
+                end
+
+                if TabDrag.Moved then
+                    local X = TabDrag.Origin.X + Delta.X
+                    local Y = TabDrag.Origin.Y + Delta.Y
+
+                    Ghost.Size = UDim2New(0, TabDrag.Size.X, 0, TabDrag.Size.Y)
+                    Ghost.Position = UDim2New(0, X, 0, Y)
+
+                    TabDrag.Edge = Window:GetClosestEdge(X + TabDrag.Size.X / 2, Y + TabDrag.Size.Y / 2)
+                end
+            end)
+
+            Library:Connect(UserInputService.InputEnded, function(Input)
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+                if not TabDrag.Active then return end
+
+                TabDrag.Active = false
+
+                if TabDrag.Moved then
+                    Items["PagePlaceholder"]:Tween(nil, { BackgroundTransparency = 1 })
+
+                    task.spawn(function()
+                        task.wait(Library.Tween.Time)
+                        Items["PagePlaceholder"].Instance.Visible = false
+                    end)
+
+                    Window:LayoutTabs(TabDrag.Edge or Window.CurrentAlignment)
+
+                    task.spawn(function()
+                        task.wait(0.1)
+                        Window.TabDidDrag = false
+                    end)
+                end
+
+                TabDrag.Moved = false
+            end)
 
             function Window:Init()
                 Window:LayoutTabs(Window.CurrentAlignment)
@@ -3919,8 +3940,20 @@ local Library do
                 end)
             end
 
-            Items["Inactive"]:Connect("MouseButton1Down", function()
-                for Index, Value in Page.Window.Pages do 
+            -- The tab buttons cover the strip, so they arm the strip drag as well.
+            -- Page switching then happens on release, and only if it was not a drag.
+            Items["Inactive"]:Connect("InputBegan", function(Input)
+                if Page.Window.BeginTabDrag then
+                    Page.Window:BeginTabDrag(Input)
+                end
+            end)
+
+            Items["Inactive"]:Connect("MouseButton1Click", function()
+                if Page.Window.TabDidDrag then
+                    return
+                end
+
+                for Index, Value in Page.Window.Pages do
                     if Value == Page and Page.Active then
                         return
                     end
