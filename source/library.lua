@@ -181,16 +181,16 @@ local Library do
 
     local Themes = {
         ["Preset"] = {
-            ["AccentGradient"] = FromRGB(0, 195, 255),   -- Slightly deeper blue accent
-            ["Background 2"] = FromRGB(10, 10, 12),      -- Very dark gray
-            ["Background"] = FromRGB(12, 12, 14),        -- Main near-black background
+            ["AccentGradient"] = FromRGB(200, 50, 50),   -- Deep red gradient tail (#C83232)
+            ["Background 2"] = FromRGB(16, 15, 18),       -- Very dark gray
+            ["Background"] = FromRGB(20, 19, 22),         -- Main near-black background
             ["Text"] = FromRGB(235, 235, 235),           -- Slightly dimmed light text
-            ["Outline"] = FromRGB(25, 25, 28),           -- Subtle outline, almost invisible
-            ["Section Top"] = FromRGB(28, 27, 31),       -- Dark section header
-            ["Section Background"] = FromRGB(10, 10, 12),-- Deep black section background
-            ["Section Background 2"] = FromRGB(14, 14, 16),-- Alternate section, minimal difference
-            ["Accent"] = FromRGB(0, 116, 224),           -- Darker blue accent for consistency
-            ["Element"] = FromRGB(16, 16, 18)            -- Deep gray for UI elements
+            ["Outline"] = FromRGB(30, 29, 33),           -- Subtle outline, almost invisible
+            ["Section Top"] = FromRGB(28, 27, 31),        -- Dark section header
+            ["Section Background"] = FromRGB(14, 13, 16), -- Deep black section background
+            ["Section Background 2"] = FromRGB(18, 17, 20),-- Alternate section, minimal difference
+            ["Accent"] = FromRGB(230, 131, 90),           -- Warm accent head (#E6835A)
+            ["Element"] = FromRGB(22, 21, 24)             -- Deep gray for UI elements
         }
     }
 
@@ -2273,8 +2273,9 @@ local Library do
                 
                 Pages = { },
                 Items = { },
+                Categories = { },
                 IsOpen = false,
-                CurrentAlignment = "LeftTabs"
+                CurrentAlignment = "Bottom"
             }
 
             local Items = { } do
@@ -2306,10 +2307,12 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     Visible = true,
+                    Active = true,
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(1, 0),
-                    BackgroundTransparency = 0.15,
-                    Size = UDim2New(0, 225, 1, 0),
+                    AnchorPoint = Vector2New(0, 1),
+                    BackgroundTransparency = 0.35,
+                    Position = UDim2New(0, 0, 1, 0),
+                    Size = UDim2New(1, 0, 0, 86),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
@@ -2343,21 +2346,6 @@ local Library do
                     end
                 end)
 
-                Items["LeftTabs"]:Connect("InputBegan", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-                        Dragging = true
-    
-                        DragStart = Input.Position
-                        StartPosition = Gui.Position
-    
-                        Input.Changed:Connect(function()
-                            if Input.UserInputState == Enum.UserInputState.End then
-                                Dragging = false
-                            end
-                        end)
-                    end
-                end)
-    
                 Library:Connect(UserInputService.InputChanged, function(Input)
                     if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
                         if Dragging then
@@ -2460,24 +2448,39 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
                 
-                Instances:Create("UIListLayout", {
+                Items["TabLayout"] = Instances:Create("UIListLayout", {
                     Parent = Items["LeftTabs"].Instance,
                     Name = "\0",
-                    Padding = UDimNew(0, 12),
+                    Padding = UDimNew(0, 4),
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
-                
-                Instances:Create("UIPadding", {
+
+                Items["TabPadding"] = Instances:Create("UIPadding", {
                     Parent = Items["LeftTabs"].Instance,
                     Name = "\0",
-                    PaddingTop = UDimNew(0, 15),
-                    PaddingBottom = UDimNew(0, 15),
-                    PaddingRight = UDimNew(0, 12),
-                    PaddingLeft = UDimNew(0, 12)
+                    PaddingTop = UDimNew(0, 8),
+                    PaddingBottom = UDimNew(0, 8),
+                    PaddingRight = UDimNew(0, 10),
+                    PaddingLeft = UDimNew(0, 10)
+                })
+
+                Items["Header"] = Instances:Create("Frame", {
+                    Parent = Items["MainFrame"].Instance,
+                    Name = "\0",
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BackgroundTransparency = 1,
+                    Position = UDim2New(0, 0, 0, 0),
+                    Size = UDim2New(1, 0, 0, 55),
+                    ZIndex = 2,
+                    BorderSizePixel = 0,
+                    BackgroundColor3 = FromRGB(255, 255, 255)
                 })
 
                 Items["Logo"] = Instances:Create("ImageLabel", {
-                    Parent = Items["MainFrame"].Instance,
+                    Parent = Items["Header"].Instance,
                     Name = "\0",
                     ImageColor3 = FromRGB(255, 255, 255),
                     ScaleType = Enum.ScaleType.Fit,
@@ -2489,7 +2492,7 @@ local Library do
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
-                }) 
+                })
 
                 Instances:Create("UIGradient", {
                     Parent = Items["Logo"].Instance,
@@ -2502,7 +2505,7 @@ local Library do
                 end})
                 
                 Items["Title"] = Instances:Create("TextLabel", {
-                    Parent = Items["MainFrame"].Instance,
+                    Parent = Items["Header"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(240, 240, 240),
@@ -2519,7 +2522,7 @@ local Library do
                 })  Items["Title"]:AddToTheme({TextColor3 = "Text"})
                 
                 Items["SubTitle"] = Instances:Create("TextLabel", {
-                    Parent = Items["MainFrame"].Instance,
+                    Parent = Items["Header"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(240, 240, 240),
@@ -2540,16 +2543,16 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    BackgroundTransparency = 0.75,
+                    BackgroundTransparency = 1,
                     Position = UDim2New(0, 0, 0, 55),
-                    Size = UDim2New(1, 0, 1, -55),
+                    Size = UDim2New(1, 0, 1, -141),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
                 })  Items["Content"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Items["CloseButton"] = Instances:Create("TextButton", {
-                    Parent = Items["MainFrame"].Instance,
+                    Parent = Items["Header"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(0, 0, 0),
@@ -2821,7 +2824,7 @@ local Library do
                 end})
 
                 Items["SettingsButton"] = Instances:Create("TextButton", {
-                    Parent = Items["MainFrame"].Instance,
+                    Parent = Items["Header"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(0, 0, 0),
@@ -3273,142 +3276,199 @@ local Library do
                 end)
             end
 
-            --[[
-            function Window:GetClosestFrame(Position, Instances)
-                local ClosestRadius = math.huge
-                local ClosestFrame
+            local TabStripHeight = 86
+            local SidebarWidth = 200
 
-                local String = {"Items.LeftTabs", "Items.RightTabs", "Items.BottomTabs", "Items.TopTabs"}
+            function Window:LayoutContent()
+                local Align = Window.CurrentAlignment
+                local Top, Bottom, Left, Right = 55, 0, 0, 0
 
-                for Index, Value in (Instances or {Items.LeftTabs.Instance, Items.RightTabs.Instance, Items.BottomTabs.Instance, Items.TopTabs.Instance}) do
-                    local Magnitude = (Vector2New(Value.AbsolutePosition.X, Value.AbsolutePosition.Y) - Position).Magnitude
-                    if Magnitude < ClosestRadius then
-                        ClosestFrame = String[Index]:gsub("Items.", "")
-                        ClosestRadius = Magnitude
-                    end
-                end 
-
-                return ClosestFrame
-            end 
-
-            function Window:UpdateTabs(CurrentAlignment)
-                if CurrentAlignment == "TopTabs" or CurrentAlignment == "BottomTabs" then
-                    for Index, Value in Window.Pages do 
-                        Value.Items.Inactive.Instance.Parent = Items[CurrentAlignment].Instance
-                        Value.Items.Inactive.Instance.Size = UDim2New(0, 70, 0, 60)
-                        Value.Items.Text.Instance.Position = UDim2New(0.5, 0, 1, -2)
-                        Value.Items.Text.Instance.AnchorPoint = Vector2New(0.5, 1)
-                        Value.Items.Icon.Instance.AnchorPoint = Vector2New(0.5, 0.5)
-                        Value.Items.Gradient.Instance.Rotation = -90
-                        
-                        if Value.Active then 
-                            Value.Items.Icon.Instance.Size = UDim2New(0, 32, 0, 32)
-                            Value.Items.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, 0)
-                            Value.Items.Text.Instance.TextTransparency = 1
-                        else
-                            Value.Items.Icon.Instance.Size = UDim2New(0, 24, 0, 24)
-                            Value.Items.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, -8)
-                            Value.Items.Text.Instance.TextTransparency = 0
-                        end
-                    end
-                elseif CurrentAlignment == "LeftTabs" or CurrentAlignment == "RightTabs" then
-                    for Index, Value in Window.Pages do
-                        Value.Items.Inactive.Instance.Parent = Items[CurrentAlignment].Instance
-                        Value.Items.Inactive.Instance.Size = UDim2New(0, 200, 0, 40)
-
-                        Value.Items.Text.Instance.Position = UDim2New(45, 0, 0.5, 0)
-                        Value.Items.Text.Instance.AnchorPoint = Vector2New(0, 0.5)
-
-                        Value.Items.Icon.Instance.AnchorPoint = Vector2New(0, 0.5)
-                        Value.Items.Icon.Instance.Position = UDim2New(16, 0, 0.5, 0)
-                        Value.Items.Icon.Instance.Size = UDim2New(0, 18, 0, 18)
-
-                        Value.Items.Gradient.Instance.Rotation = 0
-                    end
-                        
+                if Align == "Bottom" then
+                    Bottom = TabStripHeight
+                elseif Align == "Top" then
+                    Top = 55 + TabStripHeight
+                elseif Align == "Left" then
+                    Left = SidebarWidth
+                elseif Align == "Right" then
+                    Right = SidebarWidth
                 end
+
+                Items["Content"].Instance.Position = UDim2New(0, Left, 0, Top)
+                Items["Content"].Instance.Size = UDim2New(1, -(Left + Right), 1, -(Top + Bottom))
+
+                Items["Header"].Instance.Position = UDim2New(0, (Align == "Left") and SidebarWidth or 0, 0, (Align == "Top") and TabStripHeight or 0)
+                Items["Header"].Instance.Size = UDim2New(1, -((Align == "Left" or Align == "Right") and SidebarWidth or 0), 0, 55)
             end
 
-            function Window:UpdateFrameSide(OldFrame, NewFrame)
-                OldFrame.Instance.Visible = false 
-                NewFrame.Instance.Visible = true
-                Window:UpdateTabs(Window.CurrentAlignment)
-            end
+            function Window:UpdateTabs(Align)
+                local Horizontal = (Align == "Bottom" or Align == "Top")
 
-            function Window:UpdateHighlight(CurrentFrame, Bool)
-                if Bool then
-                    CurrentFrame.Instance.Visible = false 
-                    Items["PagePlaceholder"].Instance.Visible = true
+                Items["TabLayout"].Instance.FillDirection = Horizontal and Enum.FillDirection.Horizontal or Enum.FillDirection.Vertical
+                Items["TabLayout"].Instance.HorizontalAlignment = Horizontal and Enum.HorizontalAlignment.Center or Enum.HorizontalAlignment.Left
+                Items["TabLayout"].Instance.VerticalAlignment = Horizontal and Enum.VerticalAlignment.Center or Enum.VerticalAlignment.Top
+                Items["TabLayout"].Instance.Padding = UDimNew(0, Horizontal and 4 or 6)
+
+                if Horizontal then
+                    Items["TabPadding"].Instance.PaddingTop = UDimNew(0, 8)
+                    Items["TabPadding"].Instance.PaddingBottom = UDimNew(0, 8)
+                    Items["TabPadding"].Instance.PaddingLeft = UDimNew(0, 10)
+                    Items["TabPadding"].Instance.PaddingRight = UDimNew(0, 10)
                 else
-                    CurrentFrame.Instance.Visible = true 
-                    Items["PagePlaceholder"].Instance.Visible = false
+                    Items["TabPadding"].Instance.PaddingTop = UDimNew(0, 15)
+                    Items["TabPadding"].Instance.PaddingBottom = UDimNew(0, 15)
+                    Items["TabPadding"].Instance.PaddingLeft = UDimNew(0, 12)
+                    Items["TabPadding"].Instance.PaddingRight = UDimNew(0, 12)
+                end
+
+                for _, Category in Window.Categories do
+                    Category.Instance.Visible = not Horizontal
+                end
+
+                for _, Value in Window.Pages do
+                    local It = Value.Items
+
+                    if Horizontal then
+                        It.Inactive.Instance.Size = UDim2New(0, 72, 0, 60)
+                        It.Text.Instance.AnchorPoint = Vector2New(0.5, 1)
+                        It.Text.Instance.Position = UDim2New(0.5, 0, 1, -2)
+                        It.Icon.Instance.AnchorPoint = Vector2New(0.5, 0.5)
+                        It.Gradient.Instance.Rotation = -90
+
+                        if Value.Active then
+                            It.Icon.Instance.Size = UDim2New(0, 30, 0, 30)
+                            It.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, 0)
+                            It.Text.Instance.TextTransparency = 1
+                        else
+                            It.Icon.Instance.Size = UDim2New(0, 22, 0, 22)
+                            It.Icon.Instance.Position = UDim2New(0.5, 0, 0.5, -8)
+                            It.Text.Instance.TextTransparency = 0
+                        end
+                    else
+                        It.Inactive.Instance.Size = UDim2New(1, 0, 0, 40)
+                        It.Text.Instance.AnchorPoint = Vector2New(0, 0.5)
+                        It.Text.Instance.Position = UDim2New(0, 45, 0.5, 0)
+                        It.Text.Instance.TextTransparency = 0
+                        It.Icon.Instance.AnchorPoint = Vector2New(0, 0.5)
+                        It.Icon.Instance.Position = UDim2New(0, 16, 0.5, 0)
+                        It.Icon.Instance.Size = UDim2New(0, 18, 0, 18)
+                        It.Gradient.Instance.Rotation = 0
+                    end
                 end
             end
 
-            for Index, Value in {"Left", "Top", "Bottom", "Right"} do 
-                local TabDragging = false
-                local TabItem = Items[Value.."Tabs"]
-                local SelectedParent
+            function Window:LayoutTabs(Align)
+                Window.CurrentAlignment = Align
+                local Strip = Items["LeftTabs"].Instance
 
-                TabItem:Connect("InputBegan", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then 
-                        TabItem.Instance.Parent = Library.Holder.Instance
-                        Window:UpdateHighlight(TabItem, true)
-                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 0.3})
-                        TabDragging = true 
+                if Align == "Bottom" then
+                    Strip.AnchorPoint = Vector2New(0, 1)
+                    Strip.Position = UDim2New(0, 0, 1, 0)
+                    Strip.Size = UDim2New(1, 0, 0, TabStripHeight)
+                elseif Align == "Top" then
+                    Strip.AnchorPoint = Vector2New(0, 0)
+                    Strip.Position = UDim2New(0, 0, 0, 0)
+                    Strip.Size = UDim2New(1, 0, 0, TabStripHeight)
+                elseif Align == "Left" then
+                    Strip.AnchorPoint = Vector2New(0, 0)
+                    Strip.Position = UDim2New(0, 0, 0, 0)
+                    Strip.Size = UDim2New(0, SidebarWidth, 1, 0)
+                elseif Align == "Right" then
+                    Strip.AnchorPoint = Vector2New(1, 0)
+                    Strip.Position = UDim2New(1, 0, 0, 0)
+                    Strip.Size = UDim2New(0, SidebarWidth, 1, 0)
+                end
+
+                Window:UpdateTabs(Align)
+                Window:LayoutContent()
+            end
+
+            function Window:GetClosestEdge(MousePosition)
+                local Frame = Items["MainFrame"].Instance
+                local Pos = Frame.AbsolutePosition
+                local Size = Frame.AbsoluteSize
+                local Relative = MousePosition - Pos
+
+                local DistLeft = Relative.X
+                local DistRight = Size.X - Relative.X
+                local DistTop = Relative.Y
+                local DistBottom = Size.Y - Relative.Y
+
+                local Closest = "Bottom"
+                local Best = DistBottom
+
+                if DistTop < Best then Best = DistTop Closest = "Top" end
+                if DistLeft < Best then Best = DistLeft Closest = "Left" end
+                if DistRight < Best then Best = DistRight Closest = "Right" end
+
+                return Closest
+            end
+
+            do
+                local Dragging = false
+                local Moved = false
+                local StartInput
+
+                Items["LeftTabs"]:Connect("InputBegan", function(Input)
+                    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                        Dragging = true
+                        Moved = false
+                        StartInput = Input.Position
                     end
-                end)
-
-                TabItem:Connect("InputEnded", function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        TabDragging = false
-
-                        if SelectedParent then
-                            Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 1})
-                            Window:UpdateHighlight(TabItem, false)
-                            Window:UpdateFrameSide(TabItem, Items[SelectedParent])
-                            Window.CurrentAlignment = SelectedParent
-                        end
-                    end                    
                 end)
 
                 Library:Connect(UserInputService.InputChanged, function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseMovement and TabDragging then 
-                        SelectedParent = Window:GetClosestFrame(Vector2New(Input.Position.X, Input.Position.Y - 36))
-                        local TargetSize
-                        local TargetPosition
-                        local TargetAnchorPoint
+                    if not Dragging then return end
+                    if Input.UserInputType ~= Enum.UserInputType.MouseMovement and Input.UserInputType ~= Enum.UserInputType.Touch then return end
 
-                        if SelectedParent == "LeftTabs" then
-                            TargetSize = UDim2New(0, 225, 1, 0)
-                            TargetPosition = UDim2New(0, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(1, 0)
-                        elseif SelectedParent == "RightTabs" then
-                            TargetSize = UDim2New(0, 225, 1, 0)
-                            TargetPosition = UDim2New(1, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(0, 0)
-                        elseif SelectedParent == "TopTabs" then
-                            TargetSize = UDim2New(1, 0, 0, 80)
-                            TargetPosition = UDim2New(0, 0, 0, 0)
-                            TargetAnchorPoint = Vector2New(0, 1)
-                        elseif SelectedParent == "BottomTabs" then
-                            TargetSize = UDim2New(1, 0, 0, 90)
-                            TargetPosition = UDim2New(0, 0, 1, 0)
-                            TargetAnchorPoint = Vector2New(0, 0)
+                    local Delta = (Input.Position - StartInput).Magnitude
+                    if Delta > 6 and not Moved then
+                        Moved = true
+                        Items["PagePlaceholder"].Instance.Visible = true
+                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 0.75})
+                    end
+
+                    if Moved then
+                        local Edge = Window:GetClosestEdge(Vector2New(Input.Position.X, Input.Position.Y))
+                        local Frame = Items["PagePlaceholder"].Instance
+                        Frame.BackgroundColor3 = Library.Theme.Accent
+
+                        if Edge == "Bottom" then
+                            Frame.AnchorPoint = Vector2New(0, 1) Frame.Position = UDim2New(0, 0, 1, 0) Frame.Size = UDim2New(1, 0, 0, TabStripHeight)
+                        elseif Edge == "Top" then
+                            Frame.AnchorPoint = Vector2New(0, 0) Frame.Position = UDim2New(0, 0, 0, 0) Frame.Size = UDim2New(1, 0, 0, TabStripHeight)
+                        elseif Edge == "Left" then
+                            Frame.AnchorPoint = Vector2New(0, 0) Frame.Position = UDim2New(0, 0, 0, 0) Frame.Size = UDim2New(0, SidebarWidth, 1, 0)
+                        elseif Edge == "Right" then
+                            Frame.AnchorPoint = Vector2New(1, 0) Frame.Position = UDim2New(1, 0, 0, 0) Frame.Size = UDim2New(0, SidebarWidth, 1, 0)
                         end
-                        
-                        Items["PagePlaceholder"].Instance.AnchorPoint = TargetAnchorPoint
-                        Items["PagePlaceholder"]:Tween(TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = TargetSize})
-                        Items["PagePlaceholder"]:Tween(TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = TargetPosition})
                     end
                 end)
+
+                Library:Connect(UserInputService.InputEnded, function(Input)
+                    if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+                    if not Dragging then return end
+                    Dragging = false
+
+                    if Moved then
+                        local Edge = Window:GetClosestEdge(Vector2New(Input.Position.X, Input.Position.Y))
+                        Items["PagePlaceholder"]:Tween(nil, {BackgroundTransparency = 1})
+                        task.spawn(function()
+                            task.wait(Library.Tween.Time)
+                            Items["PagePlaceholder"].Instance.Visible = false
+                        end)
+                        Window:LayoutTabs(Edge)
+                    end
+
+                    Moved = false
+                end)
             end
-            --]]
 
             function Window:Init()
-                for __, Value in Window.Pages do 
-                    if Value.Active then 
-                        for _, Value2 in Value.Sections do 
+                Window:LayoutTabs(Window.CurrentAlignment)
+
+                for __, Value in Window.Pages do
+                    if Value.Active then
+                        for _, Value2 in Value.Sections do
                             task.spawn(function()
                                 Value2:TweenElements(true)
                                 Library:RefreshConfigsList(ConfigsDropdown)
@@ -3623,7 +3683,10 @@ local Library do
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Category"]:AddToTheme({TextColor3 = "Text"})
-            end                
+
+                Items["Category"].Instance.Visible = (self.CurrentAlignment == "Left" or self.CurrentAlignment == "Right")
+                TableInsert(self.Categories, Items["Category"])
+            end
         end
 
         Library.Page = function(self, Data)
@@ -3781,11 +3844,15 @@ local Library do
                     return 
                 end
 
-                Page.Active = Bool 
-                
+                Page.Active = Bool
+
                 Debounce = true
-                Items["Page"].Instance.Visible = Bool 
+                Items["Page"].Instance.Visible = Bool
                 Items["Page"].Instance.Parent = Bool and Page.Window.Items["Content"].Instance or Library.UnusedHolder.Instance
+
+                if Page.Window.UpdateTabs then
+                    Page.Window:UpdateTabs(Page.Window.CurrentAlignment)
+                end
 
                 if Page.Active then
                     Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0.25})
