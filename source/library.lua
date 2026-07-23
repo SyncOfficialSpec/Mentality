@@ -3234,7 +3234,11 @@ local Library do
                     Flag = "MenuBind",
                     Default = Enum.KeyCode.Z,
                     Callback = function(Value)
-                        Window:SetOpen(Value)
+                        -- The keybind applies its default while the window is still being
+                        -- built, so SetOpen does not exist yet on the first call.
+                        if Window.SetOpen then
+                            Window:SetOpen(Value)
+                        end
                     end
                 })
 
