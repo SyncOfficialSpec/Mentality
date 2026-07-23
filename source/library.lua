@@ -547,12 +547,18 @@ local Library do
                 end
             end
 
-            for Index, Value in Edges do 
+            for Index, Value in Edges do
                 Value.Button:Connect("InputBegan", function(Input)
                     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                         BeginResizing(Value.Side)
                     end
                 end)
+            end
+
+            -- Expose the edge handles so the window can reshape them around a docked tab strip.
+            self.ResizeEdges = {}
+            for Index, Value in Edges do
+                self.ResizeEdges[Value.Side] = Value.Button
             end
 
             Library:Connect(UserInputService.InputEnded, function(Input)
@@ -3407,6 +3413,58 @@ local Library do
 
                 Window:UpdateTabs(Align)
                 Window:LayoutContent()
+                Window:LayoutResizeEdges(Align)
+            end
+
+            -- Keep the resize handles off the docked tab strip: hide the edge the strip sits
+            -- on, and shrink the two perpendicular edges so they stop at the strip boundary.
+            function Window:LayoutResizeEdges(Align)
+                local Edges = Items["MainFrame"].ResizeEdges
+                if not Edges then return end
+
+                local ET = 2
+
+                for _, Side in ipairs({"L", "R", "T", "B"}) do
+                    local Edge = Edges[Side]
+                    if Edge then
+                        Edge.Instance.Visible = true
+                        if Side == "L" then
+                            Edge.Instance.Position = UDim2New(0, 0, 0, 0)
+                            Edge.Instance.Size = UDim2New(0, ET, 1, 0)
+                        elseif Side == "R" then
+                            Edge.Instance.Position = UDim2New(1, -ET, 0, 0)
+                            Edge.Instance.Size = UDim2New(0, ET, 1, 0)
+                        elseif Side == "T" then
+                            Edge.Instance.Position = UDim2New(0, 0, 0, 0)
+                            Edge.Instance.Size = UDim2New(1, 0, 0, ET)
+                        elseif Side == "B" then
+                            Edge.Instance.Position = UDim2New(0, 0, 1, -ET)
+                            Edge.Instance.Size = UDim2New(1, 0, 0, ET)
+                        end
+                    end
+                end
+
+                if Align == "Bottom" then
+                    Edges["B"].Instance.Visible = false
+                    Edges["L"].Instance.Size = UDim2New(0, ET, 1, -TabStripHeight)
+                    Edges["R"].Instance.Size = UDim2New(0, ET, 1, -TabStripHeight)
+                elseif Align == "Top" then
+                    Edges["T"].Instance.Visible = false
+                    Edges["L"].Instance.Position = UDim2New(0, 0, 0, TabStripHeight)
+                    Edges["L"].Instance.Size = UDim2New(0, ET, 1, -TabStripHeight)
+                    Edges["R"].Instance.Position = UDim2New(1, -ET, 0, TabStripHeight)
+                    Edges["R"].Instance.Size = UDim2New(0, ET, 1, -TabStripHeight)
+                elseif Align == "Left" then
+                    Edges["L"].Instance.Visible = false
+                    Edges["T"].Instance.Position = UDim2New(0, SidebarWidth, 0, 0)
+                    Edges["T"].Instance.Size = UDim2New(1, -SidebarWidth, 0, ET)
+                    Edges["B"].Instance.Position = UDim2New(0, SidebarWidth, 1, -ET)
+                    Edges["B"].Instance.Size = UDim2New(1, -SidebarWidth, 0, ET)
+                elseif Align == "Right" then
+                    Edges["R"].Instance.Visible = false
+                    Edges["T"].Instance.Size = UDim2New(1, -SidebarWidth, 0, ET)
+                    Edges["B"].Instance.Size = UDim2New(1, -SidebarWidth, 0, ET)
+                end
             end
 
             -- Nearest edge for a point already expressed in MainFrame-local pixels.
